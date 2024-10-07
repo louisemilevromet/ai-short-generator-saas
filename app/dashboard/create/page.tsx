@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FileVideo } from "lucide-react";
 import { Loading } from "@/app/components/Loading";
+import { v4 as uuidv4 } from "uuid";
 
 export default function CreateAIVideo() {
   const [contentType, setContentType] = useState("");
@@ -56,6 +57,7 @@ export default function CreateAIVideo() {
       image: "/gta.png",
     },
   ];
+  const [audioUrl, setAudioUrl] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +67,7 @@ export default function CreateAIVideo() {
 
   const getVideoScript = async () => {
     setLoading(true);
+    let script = "";
     const response = await fetch("/api/get-video-script", {
       method: "POST",
       body: JSON.stringify({
@@ -74,8 +77,25 @@ export default function CreateAIVideo() {
       }),
     });
     const data = await response.json();
-    console.log(data);
+    data.result.forEach((item: any) => {
+      script += item.ContentText + "\n";
+    });
+    getVoice(script);
+  };
+
+  const getVoice = async (script: string) => {
+    const id = uuidv4();
+    const response = await fetch("/api/get-voice", {
+      method: "POST",
+      body: JSON.stringify({
+        text: script,
+        id: id,
+      }),
+    });
+    const data = await response.json();
+    setAudioUrl(data.Result);
     setLoading(false);
+    console.log(audioUrl);
   };
 
   return (
